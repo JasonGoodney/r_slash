@@ -18,7 +18,7 @@ class PostTableViewCell: UITableViewCell {
     
     var thumbnail: UIImage?
     
-    lazy var thumbnailImageView: UIImageView = {
+    var thumbnailImageView: UIImageView = {
         let view = UIImageView()
         return view
     }()
@@ -38,6 +38,11 @@ class PostTableViewCell: UITableViewCell {
     var numberOfCommentsLabel: UILabel = {
         let label = UILabel()
         return label
+    }()
+    
+    var bottomStackView: UIStackView = {
+        let view = UIStackView()
+        return view
     }()
     
     override func awakeFromNib() {
@@ -60,13 +65,18 @@ private extension PostTableViewCell {
         guard let post = post else { return }
         
         titleLabel.text = post.title
-        upvotesLabel.text = "\(post.numberOfUpvotes)"
-        numberOfCommentsLabel.text = "\(post.numberOfComments)"
+        upvotesLabel.text = "Ups \(post.numberOfUpvotes)"
+        numberOfCommentsLabel.text = "Comments \(post.numberOfComments)"
         thumbnailImageView.image = #imageLiteral(resourceName: "imageNotFound")
         
-        [titleLabel, thumbnailImageView, upvotesLabel].forEach({
+        [titleLabel, thumbnailImageView, bottomStackView].forEach({
             addSubview($0)
             $0.translatesAutoresizingMaskIntoConstraints = false
+        })
+        
+        
+        [upvotesLabel, numberOfCommentsLabel].forEach({
+            bottomStackView.addArrangedSubview($0)
         })
         
         setupConstraints()
@@ -75,21 +85,23 @@ private extension PostTableViewCell {
     func setupConstraints() {
         NSLayoutConstraint.activate([
             
-//            titleLabel.centerXAnchor.constraint(equalTo: centerXAnchor),
-//            titleLabel.centerYAnchor.constraint(equalTo: centerYAnchor),
-            titleLabel.leadingAnchor.constraint(equalTo: thumbnailImageView.trailingAnchor, constant: 16),
-            titleLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -16),
+
             titleLabel.topAnchor.constraint(equalTo: topAnchor, constant: 16),
+            titleLabel.leadingAnchor.constraint(equalTo: thumbnailImageView.trailingAnchor, constant: 16),
+            titleLabel.bottomAnchor.constraint(equalTo: bottomStackView.topAnchor, constant: -16),
+            titleLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -16),
             
-            thumbnailImageView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
             thumbnailImageView.topAnchor.constraint(equalTo: topAnchor, constant: 16),
-            thumbnailImageView.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -16),
+            thumbnailImageView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
+//            thumbnailImageView.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -16),
             thumbnailImageView.widthAnchor.constraint(equalToConstant: 100),
             thumbnailImageView.heightAnchor.constraint(equalToConstant: 100),
             
-            upvotesLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 16),
-            upvotesLabel.leadingAnchor.constraint(equalTo: titleLabel.leadingAnchor, constant: 16),
-            upvotesLabel.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -16),
+            bottomStackView.topAnchor.constraint(equalTo: thumbnailImageView.bottomAnchor, constant: 16),
+            bottomStackView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 24),
+            bottomStackView.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -16),
+            bottomStackView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -24),
+            
         ])
     }
 }

@@ -12,12 +12,7 @@ class PostListViewController: UIViewController {
     
     // MARK: - Properties
     var posts: [Post]?
-    var searchText: String = ""
-    var subreddit: String? {
-        didSet {
-            updateSubredditLabel()
-        }
-    }
+    var subreddit = "funny"
     
     lazy var tableView: UITableView = {
         let view = UITableView(frame: .zero)
@@ -46,7 +41,15 @@ class PostListViewController: UIViewController {
         return search
     }()
     
-    let subredditLabel = UILabel()
+    let subredditLabel: UILabel = {
+        let label = UILabel()
+        label.frame = CGRect(x: 0, y: 0, width: 72, height: 44)
+        label.textAlignment = .right
+        label.font = UIFont.systemFont(ofSize: 12, weight: .medium)
+        label.textColor = .darkGray
+        label.numberOfLines = 0
+        return label
+    }()
     
     // MARK: - Lifecycle
     override func viewDidLoad() {
@@ -54,9 +57,7 @@ class PostListViewController: UIViewController {
         
         updateView()
         
-        displaySubreddit("funny")
-    
-        // TODO: - set barbutton as subreddit
+        displaySubreddit(subreddit)
     }
 }
 
@@ -90,18 +91,20 @@ private extension PostListViewController {
         DispatchQueue.main.async {
             self.tableView.reloadData()
             UIApplication.shared.isNetworkActivityIndicatorVisible = false
-            
+            self.updateSubredditLabel()
         }
     }
     
     func updateSubredditLabel() {
-        guard let subreddit = subreddit else { return }
-        subredditLabel.text = "r/\(subreddit)"
+        subredditLabel.text = "\(subreddit)"
     }
     
     func setupNavigationBar() {
-        let leftBarButtonItem = UIBarButtonItem(customView: subredditLabel)
-        navigationItem.leftBarButtonItem = leftBarButtonItem
+        
+//        subredditLabel.numberOfLines = 0
+        
+        let barButtonItem = UIBarButtonItem(customView: subredditLabel)
+        navigationItem.rightBarButtonItem = barButtonItem
         navigationItem.title = "r slash"
         navigationController?.navigationBar.prefersLargeTitles = true
         navigationItem.searchController = searchController
@@ -114,10 +117,9 @@ private extension PostListViewController {
         PostController.shared.fetchPosts(by: subreddit) { (posts) in
             guard let posts = posts else { return }
             self.posts = posts
-            
+            self.subreddit = subreddit
             DispatchQueue.main.async {
                 UIApplication.shared.isNetworkActivityIndicatorVisible = true
-                self.updateSubredditLabel()
                 self.reloadTableView()
             }
         }
@@ -157,6 +159,7 @@ extension PostListViewController: UITableViewDelegate {
 extension PostListViewController: UISearchResultsUpdating {
     func updateSearchResults(for searchController: UISearchController) {
         guard let searchText = searchController.searchBar.text?.lowercased() else { return }
+        // When searchText == "", so does subreddit
         subreddit = searchText
     }
 }
@@ -164,10 +167,9 @@ extension PostListViewController: UISearchResultsUpdating {
 // MARK: - UISearchBarDelegate
 extension PostListViewController: UISearchBarDelegate{
     func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
-        guard let subreddit = subreddit else { return }
         displaySubreddit(subreddit)
         searchBar.text = ""
-        searchController.isActive = false
+        searchController.isActive = false        
     }
 }
 
