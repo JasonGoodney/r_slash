@@ -11,4 +11,5 @@ import Foundation
 struct RedditURL {
     static let baseString = "https://www.reddit.com/"
     static let defaultSubreddit = "aww"
+    static let thumbnailSelf = "self"
 }

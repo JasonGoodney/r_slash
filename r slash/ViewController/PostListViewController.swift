@@ -23,13 +23,15 @@ class PostListViewController: UIViewController {
                       forCellReuseIdentifier: PostTableViewCell.reuseIdentifier())
         view.estimatedRowHeight = 128
         view.rowHeight = UITableViewAutomaticDimension
+        if #available(iOS 10.0, *) { view.refreshControl = refreshControl }
+            else { view.addSubview(refreshControl) }
         return view
     }()
     
-    lazy var progressView: UIProgressView = {
-        let view = UIProgressView()
-        
-        return view
+    lazy var refreshControl: UIRefreshControl = {
+        let control = UIRefreshControl()
+        control.addTarget(self, action: #selector(refreshSubreddit), for: .valueChanged)
+        return control
     }()
     
     lazy var searchController: UISearchController = {
@@ -60,13 +62,19 @@ class PostListViewController: UIViewController {
         
         displaySubreddit(subreddit)
     }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        if let index = self.tableView.indexPathForSelectedRow{
+            self.tableView.deselectRow(at: index, animated: true)
+        }
+    }
 }
 
 // MARK: - Update View
 private extension PostListViewController {
     func updateView() {
         
-        [tableView, progressView].forEach({
+        [tableView].forEach({
             view.addSubview($0)
             $0.translatesAutoresizingMaskIntoConstraints = false
         })
@@ -82,9 +90,6 @@ private extension PostListViewController {
             tableView.rightAnchor.constraint(equalTo: view.rightAnchor),
             tableView.topAnchor.constraint(equalTo: view.topAnchor),
             tableView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
-            
-            progressView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
-            progressView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
         ])
     }
     
@@ -92,36 +97,46 @@ private extension PostListViewController {
         DispatchQueue.main.async {
             self.tableView.reloadData()
             UIApplication.shared.isNetworkActivityIndicatorVisible = false
-            self.updateSubredditLabel()
         }
     }
     
-    func updateSubredditLabel() {
+    func updateSubredditLabel(_ subreddit: String) {
         subredditLabel.text = "\(subreddit)"
     }
     
     func setupNavigationBar() {
-        
-//        subredditLabel.numberOfLines = 0
-        
         let barButtonItem = UIBarButtonItem(customView: subredditLabel)
         navigationItem.rightBarButtonItem = barButtonItem
         navigationItem.title = "r slash"
         navigationController?.navigationBar.prefersLargeTitles = true
         navigationItem.searchController = searchController
     }
+    
+    @objc func refreshSubreddit() {
+        refreshControl.beginRefreshing()
+        displaySubreddit(subreddit)
+    }
 }
 
 // MARK: - Fetching
 private extension PostListViewController {
     func displaySubreddit(_ subreddit: String) {
-        PostController.shared.fetchPosts(by: subreddit) { (posts) in
+        PostController.shared.fetchPosts(by: subreddit) { (posts, error) in
+            if let _ = error {
+                DispatchQueue.main.async {
+                    self.notFoundAlert(subreddit)
+                    return
+                }
+            }
+            
             guard let posts = posts else { return }
             self.posts = posts
-            self.subreddit = subreddit
+            
             DispatchQueue.main.async {
                 UIApplication.shared.isNetworkActivityIndicatorVisible = true
                 self.reloadTableView()
+                self.updateSubredditLabel(subreddit)
+                self.refreshControl.endRefreshing()
             }
         }
     }
@@ -138,19 +153,21 @@ extension PostListViewController: UITableViewDataSource {
                                                        for: indexPath) as? PostTableViewCell else { return UITableViewCell() }
         
         guard let post = posts?[indexPath.row] else { return UITableViewCell() }
+        cell.post = post
         
-        PostController.shared.fetchImage(from: post) { (image) in
-            
-            DispatchQueue.main.async {
-                cell.post = post
-                if let currentIndexPath = self.tableView.indexPath(for: cell), currentIndexPath == indexPath {
-                    cell.thumbnail = image
-                } else {
-                    print("Got image for now-reused cell")
-                    return // Cell has been reused
+        if post.thumbnailEndpoint != RedditURL.thumbnailSelf {
+            PostController.shared.fetchImage(at: post.thumbnailEndpoint) { (image, error) in
+                DispatchQueue.main.async {
+                    if let currentIndexPath = self.tableView.indexPath(for: cell), currentIndexPath == indexPath {
+                        cell.thumbnailImageView.image = image
+                    } else {
+                        print("Got image for now-reused cell")
+                        return // Cell has been reused
+                    }
                 }
             }
-        }        
+        } else { cell.thumbnailImageView.isHidden = true }
+        
         return cell
     }
 }
@@ -172,18 +189,22 @@ extension PostListViewController: UITableViewDelegate {
 // MARK: - UISearchResultsUpdating
 extension PostListViewController: UISearchResultsUpdating {
     func updateSearchResults(for searchController: UISearchController) {
-        guard let searchText = searchController.searchBar.text?.lowercased() else { return }
-        // When searchText == "", so does subreddit
-        subreddit = searchText
+//        guard let searchText = searchController.searchBar.text?.lowercased() else { return }
+////        // When searchText == "", so does subreddit
+//        subreddit = searchText
+        
     }
 }
 
 // MARK: - UISearchBarDelegate
 extension PostListViewController: UISearchBarDelegate{
     func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
+        guard let searchText = searchBar.text?.lowercased() else { return }
+        
+        subreddit = searchText
         displaySubreddit(subreddit)
         searchBar.text = ""
-        searchController.isActive = false        
+        searchController.isActive = false
     }
 }
 
@@ -191,5 +212,30 @@ extension PostListViewController: UISearchBarDelegate{
 extension PostListViewController: SFSafariViewControllerDelegate {
     func safariViewControllerDidFinish(_ controller: SFSafariViewController) {
         dismiss(animated: true, completion: nil)
+    }
+}
+
+// MARK: - Alert
+extension PostListViewController {
+    func notFoundAlert(_ subreddit: String) {
+        let alertLabel = UILabel(frame: CGRect(x: 16, y: -64, width: self.view.frame.width - 32, height: 64))
+        alertLabel.backgroundColor = #colorLiteral(red: 1, green: 0.3033397018, blue: 0.2027637527, alpha: 1)
+        alertLabel.textColor = .white
+        alertLabel.text = "r/\(subreddit) not found"
+        alertLabel.font = UIFont.systemFont(ofSize: 17, weight: .medium)
+        alertLabel.textAlignment = .center
+        alertLabel.layer.cornerRadius = 5
+        alertLabel.clipsToBounds = true
+        
+        guard let keyWindow = UIApplication.shared.keyWindow else { return }
+        keyWindow.addSubview(alertLabel)
+
+        UIView.animate(withDuration: 0.5, animations: {
+            alertLabel.frame.origin.y = 22
+        }) { _ in
+            UIView.animate(withDuration: 0.5, delay: 2.5, options: [], animations: {
+                alertLabel.frame.origin.y = -64
+            }, completion: nil)
+        }
     }
 }

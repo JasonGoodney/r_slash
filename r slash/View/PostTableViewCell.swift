@@ -24,6 +24,8 @@ class PostTableViewCell: UITableViewCell {
     
     var thumbnailImageView: UIImageView = {
         let view = UIImageView()
+        view.layer.cornerRadius = 5
+        view.clipsToBounds = true
         return view
     }()
     
@@ -71,7 +73,6 @@ private extension PostTableViewCell {
         titleLabel.text = post.title
         upvotesLabel.text = "Ups \(post.numberOfUpvotes)"
         numberOfCommentsLabel.text = "Comments \(post.numberOfComments)"
-        thumbnailImageView.image = #imageLiteral(resourceName: "imageNotFound")
         
         [titleLabel, thumbnailImageView, bottomStackView].forEach({
             addSubview($0)
@@ -89,7 +90,6 @@ private extension PostTableViewCell {
     func setupConstraints() {
         NSLayoutConstraint.activate([
             
-
             titleLabel.topAnchor.constraint(equalTo: topAnchor, constant: 16),
             titleLabel.leadingAnchor.constraint(equalTo: thumbnailImageView.trailingAnchor, constant: 16),
             titleLabel.bottomAnchor.constraint(equalTo: bottomStackView.topAnchor, constant: -16),
@@ -97,7 +97,6 @@ private extension PostTableViewCell {
             
             thumbnailImageView.topAnchor.constraint(equalTo: topAnchor, constant: 16),
             thumbnailImageView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
-//            thumbnailImageView.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -16),
             thumbnailImageView.widthAnchor.constraint(equalToConstant: 100),
             thumbnailImageView.heightAnchor.constraint(equalToConstant: 100),
             
