@@ -7,12 +7,13 @@
 //
 
 import UIKit
+import SafariServices
 
 class PostListViewController: UIViewController {
     
     // MARK: - Properties
     var posts: [Post]?
-    var subreddit = "funny"
+    var subreddit = RedditURL.defaultSubreddit
     
     lazy var tableView: UITableView = {
         let view = UITableView(frame: .zero)
@@ -133,26 +134,39 @@ extension PostListViewController: UITableViewDataSource {
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: PostTableViewCell.reuseIdentifier(), for: indexPath) as? PostTableViewCell
+        guard let cell = tableView.dequeueReusableCell(withIdentifier: PostTableViewCell.reuseIdentifier(),
+                                                       for: indexPath) as? PostTableViewCell else { return UITableViewCell() }
         
         guard let post = posts?[indexPath.row] else { return UITableViewCell() }
         
         PostController.shared.fetchImage(from: post) { (image) in
             
             DispatchQueue.main.async {
-                cell?.thumbnailImageView.image = image != nil ? image : #imageLiteral(resourceName: "imageNotFound")
+                cell.post = post
+                if let currentIndexPath = self.tableView.indexPath(for: cell), currentIndexPath == indexPath {
+                    cell.thumbnail = image
+                } else {
+                    print("Got image for now-reused cell")
+                    return // Cell has been reused
+                }
             }
-        }
-        
-        cell?.post = post
-        
-        return cell ?? UITableViewCell()
+        }        
+        return cell
     }
 }
 
 // MARK: - UITableViewDelegate
 extension PostListViewController: UITableViewDelegate {
-    
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        guard let posts = posts else { return }
+        let post = posts[indexPath.row]
+        
+        if let url = URL(string: RedditURL.baseString)?.appendingPathComponent(post.permalink) {
+            let sfv = SFSafariViewController(url: url)
+            sfv.delegate = self
+            present(sfv, animated: true, completion: nil)
+        }
+    }
 }
 
 // MARK: - UISearchResultsUpdating
@@ -173,3 +187,9 @@ extension PostListViewController: UISearchBarDelegate{
     }
 }
 
+// MARK: - SFSafariViewControllerDelegate
+extension PostListViewController: SFSafariViewControllerDelegate {
+    func safariViewControllerDidFinish(_ controller: SFSafariViewController) {
+        dismiss(animated: true, completion: nil)
+    }
+}

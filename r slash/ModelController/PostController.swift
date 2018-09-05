@@ -17,7 +17,7 @@ class PostController {
     func fetchPosts(by subreddit: String,  completion: @escaping ([Post]?) -> Void) {
         
         guard let baseURL = URL(string: RedditURL.baseString) else { return }
-        let subredditURL = baseURL.appendingPathComponent(subreddit)
+        let subredditURL = baseURL.appendingPathComponent("r").appendingPathComponent(subreddit)
         let subredditJSONURL = subredditURL.appendingPathExtension("json")
         
         URLSession.shared.dataTask(with: subredditJSONURL) { (data, _, error) in

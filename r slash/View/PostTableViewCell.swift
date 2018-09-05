@@ -16,7 +16,11 @@ class PostTableViewCell: UITableViewCell {
         }
     }
     
-    var thumbnail: UIImage?
+    var thumbnail: UIImage? {
+        didSet {
+            thumbnailImageView.image = thumbnail
+        }
+    }
     
     var thumbnailImageView: UIImageView = {
         let view = UIImageView()

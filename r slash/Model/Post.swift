@@ -13,9 +13,11 @@ struct Post: Decodable {
     let thumbnailEndpoint: String
     let numberOfUpvotes: Int
     let numberOfComments: Int
+    let permalink: String
     
     private enum CodingKeys: String, CodingKey {
         case title
+        case permalink
         case thumbnailEndpoint = "thumbnail"
         case numberOfUpvotes = "ups"
         case numberOfComments = "num_comments"
