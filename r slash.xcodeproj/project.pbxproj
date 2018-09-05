@@ -8,20 +8,28 @@
 
 /* Begin PBXBuildFile section */
 		D7607080213F3CC6004340AE /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = D760707F213F3CC6004340AE /* AppDelegate.swift */; };
-		D7607082213F3CC6004340AE /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7607081213F3CC6004340AE /* ViewController.swift */; };
 		D7607085213F3CC6004340AE /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = D7607083213F3CC6004340AE /* Main.storyboard */; };
 		D7607087213F3CC7004340AE /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D7607086213F3CC7004340AE /* Assets.xcassets */; };
 		D760708A213F3CC7004340AE /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = D7607088213F3CC7004340AE /* LaunchScreen.storyboard */; };
+		D7607093213F432C004340AE /* Post.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7607092213F432C004340AE /* Post.swift */; };
+		D7607096213F44AD004340AE /* PostController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7607095213F44AD004340AE /* PostController.swift */; };
+		D7607099213F4553004340AE /* PostListViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7607098213F4553004340AE /* PostListViewController.swift */; };
+		D760709D213F46C5004340AE /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = D760709C213F46C5004340AE /* Constants.swift */; };
+		D760709F213F586D004340AE /* PostTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = D760709E213F586D004340AE /* PostTableViewCell.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		D760707C213F3CC6004340AE /* r slash.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "r slash.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		D760707F213F3CC6004340AE /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
-		D7607081213F3CC6004340AE /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
 		D7607084213F3CC6004340AE /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		D7607086213F3CC7004340AE /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		D7607089213F3CC7004340AE /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		D760708B213F3CC7004340AE /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		D7607092213F432C004340AE /* Post.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Post.swift; sourceTree = "<group>"; };
+		D7607095213F44AD004340AE /* PostController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostController.swift; sourceTree = "<group>"; };
+		D7607098213F4553004340AE /* PostListViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostListViewController.swift; sourceTree = "<group>"; };
+		D760709C213F46C5004340AE /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
+		D760709E213F586D004340AE /* PostTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostTableViewCell.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -54,14 +62,58 @@
 		D760707E213F3CC6004340AE /* r slash */ = {
 			isa = PBXGroup;
 			children = (
+				D760709B213F46B9004340AE /* Constants */,
+				D7607091213F431D004340AE /* Model */,
+				D7607094213F449C004340AE /* ModelController */,
+				D760709A213F4557004340AE /* View */,
+				D7607097213F44D5004340AE /* ViewController */,
 				D760707F213F3CC6004340AE /* AppDelegate.swift */,
-				D7607081213F3CC6004340AE /* ViewController.swift */,
 				D7607083213F3CC6004340AE /* Main.storyboard */,
 				D7607086213F3CC7004340AE /* Assets.xcassets */,
 				D7607088213F3CC7004340AE /* LaunchScreen.storyboard */,
 				D760708B213F3CC7004340AE /* Info.plist */,
 			);
 			path = "r slash";
+			sourceTree = "<group>";
+		};
+		D7607091213F431D004340AE /* Model */ = {
+			isa = PBXGroup;
+			children = (
+				D7607092213F432C004340AE /* Post.swift */,
+			);
+			path = Model;
+			sourceTree = "<group>";
+		};
+		D7607094213F449C004340AE /* ModelController */ = {
+			isa = PBXGroup;
+			children = (
+				D7607095213F44AD004340AE /* PostController.swift */,
+			);
+			path = ModelController;
+			sourceTree = "<group>";
+		};
+		D7607097213F44D5004340AE /* ViewController */ = {
+			isa = PBXGroup;
+			children = (
+				D7607098213F4553004340AE /* PostListViewController.swift */,
+			);
+			path = ViewController;
+			sourceTree = "<group>";
+		};
+		D760709A213F4557004340AE /* View */ = {
+			isa = PBXGroup;
+			children = (
+				D760709E213F586D004340AE /* PostTableViewCell.swift */,
+			);
+			path = View;
+			sourceTree = "<group>";
+		};
+		D760709B213F46B9004340AE /* Constants */ = {
+			isa = PBXGroup;
+			children = (
+				D760709C213F46C5004340AE /* Constants.swift */,
+			);
+			path = Constants;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -135,8 +187,12 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				D7607082213F3CC6004340AE /* ViewController.swift in Sources */,
+				D760709D213F46C5004340AE /* Constants.swift in Sources */,
+				D7607099213F4553004340AE /* PostListViewController.swift in Sources */,
 				D7607080213F3CC6004340AE /* AppDelegate.swift in Sources */,
+				D7607093213F432C004340AE /* Post.swift in Sources */,
+				D7607096213F44AD004340AE /* PostController.swift in Sources */,
+				D760709F213F586D004340AE /* PostTableViewCell.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

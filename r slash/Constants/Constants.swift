@@ -7,3 +7,7 @@
 //
 
 import Foundation
+
+struct RedditURL {
+    static let baseString = "https://www.reddit.com/r/"
+}
