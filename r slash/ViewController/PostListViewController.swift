@@ -60,13 +60,7 @@ class PostListViewController: UIViewController {
         
         updateView()
         
-        displaySubreddit(subreddit)
-    }
-    
-    override func viewWillAppear(_ animated: Bool) {
-        if let index = self.tableView.indexPathForSelectedRow{
-            self.tableView.deselectRow(at: index, animated: true)
-        }
+        displaySubreddit(subreddit, page: nil)
     }
 }
 
@@ -80,16 +74,16 @@ private extension PostListViewController {
         })
         
         setupConstraints()
-        
         setupNavigationBar()
+        setupTableView()
     }
     
     func setupConstraints() {
         NSLayoutConstraint.activate([
-            tableView.leftAnchor.constraint(equalTo: view.leftAnchor),
-            tableView.rightAnchor.constraint(equalTo: view.rightAnchor),
             tableView.topAnchor.constraint(equalTo: view.topAnchor),
+            tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             tableView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
         ])
     }
     
@@ -112,16 +106,16 @@ private extension PostListViewController {
         navigationItem.searchController = searchController
     }
     
-    @objc func refreshSubreddit() {
-        refreshControl.beginRefreshing()
-        displaySubreddit(subreddit)
+    func setupTableView() {
+        tableView.contentOffset.y = -64
     }
 }
 
 // MARK: - Fetching
 private extension PostListViewController {
-    func displaySubreddit(_ subreddit: String) {
-        PostController.shared.fetchPosts(by: subreddit) { (posts, error) in
+    func displaySubreddit(_ subreddit: String, page: [String : String]?) {
+        
+        PostController.shared.fetchPosts(by: subreddit, page: page) { (posts, error) in
             if let _ = error {
                 DispatchQueue.main.async {
                     self.notFoundAlert(subreddit)
@@ -142,6 +136,45 @@ private extension PostListViewController {
     }
 }
 
+// MARK: - Actions
+private extension PostListViewController {
+    @objc func refreshSubreddit() {
+        refreshControl.beginRefreshing()
+        
+        displaySubreddit(subreddit, page: nil)
+    }
+    
+    func openInReddit(from post: Post) -> Bool {
+        let redditHook = "reddit://\(post.permalink)"
+        guard let redditURL = URL(string: redditHook) else { return false }
+        
+        if UIApplication.shared.canOpenURL(redditURL) {
+            UIApplication.shared.open(redditURL, options: [:], completionHandler: nil)
+            return true
+        }
+        print("Reddit not on device")
+        return false
+    }
+    
+    func openInSafari(from post: Post) {
+        guard let url = URL(string: RedditURL.baseString)?.appendingPathComponent(post.permalink) else { return }
+        let sfv = SFSafariViewController(url: url)
+        sfv.delegate = self
+        present(sfv, animated: true, completion: nil)
+    }
+    
+    func deselectCell() {
+        print("\(#function)")
+        if let index = self.tableView.indexPathForSelectedRow{
+            self.tableView.deselectRow(at: index, animated: true)
+        }
+    }
+    
+    func scrollToTop() {
+        tableView.scrollToRow(at: IndexPath(row: 0, section: 0), at: UITableViewScrollPosition.top, animated: true)
+    }
+}
+
 // MARK: - UITableViewDataSource
 extension PostListViewController: UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
@@ -151,23 +184,20 @@ extension PostListViewController: UITableViewDataSource {
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         guard let cell = tableView.dequeueReusableCell(withIdentifier: PostTableViewCell.reuseIdentifier(),
                                                        for: indexPath) as? PostTableViewCell else { return UITableViewCell() }
-        
-        guard let post = posts?[indexPath.row] else { return UITableViewCell() }
+        guard let posts = posts else { return UITableViewCell() }
+        let post = posts[indexPath.row]
         cell.post = post
         
-        if post.thumbnailEndpoint != RedditURL.thumbnailSelf {
-            PostController.shared.fetchImage(at: post.thumbnailEndpoint) { (image, error) in
-                DispatchQueue.main.async {
-                    if let currentIndexPath = self.tableView.indexPath(for: cell), currentIndexPath == indexPath {
-                        cell.thumbnailImageView.image = image
-                    } else {
-                        print("Got image for now-reused cell")
-                        return // Cell has been reused
-                    }
+        PostController.shared.fetchImage(at: post.thumbnailEndpoint) { (image, error) in
+            DispatchQueue.main.async {
+
+                if image != nil {
+                    cell.thumbnailImageView.image = image
+                } else {
+                    cell.thumbnailImageView.image = #imageLiteral(resourceName: "imageNotFound")
                 }
             }
-        } else { cell.thumbnailImageView.isHidden = true }
-        
+        }
         return cell
     }
 }
@@ -178,10 +208,35 @@ extension PostListViewController: UITableViewDelegate {
         guard let posts = posts else { return }
         let post = posts[indexPath.row]
         
-        if let url = URL(string: RedditURL.baseString)?.appendingPathComponent(post.permalink) {
-            let sfv = SFSafariViewController(url: url)
-            sfv.delegate = self
-            present(sfv, animated: true, completion: nil)
+        if !openInReddit(from: post) {
+            openInSafari(from: post)
+        }
+        
+        deselectCell()
+    }
+    
+    func tableView(_ tableView: UITableView, viewForFooterInSection section: Int) -> UIView? {
+        let footerView = PagingToolbar()
+        footerView.pagingDelegate = self
+        return footerView
+    }
+}
+
+// MARK: - PagingToolbarDelegate
+extension PostListViewController: PagingToolbarDelegate {
+    func nextPage() {
+        if let nextPage = PostController.shared.nextPage {
+            displaySubreddit(subreddit, page: ["after" : nextPage])
+            PostController.shared.postCount += 25
+            scrollToTop()
+        }
+    }
+    
+    func prevPage() {
+        if let prevPage = PostController.shared.prevPage {
+            displaySubreddit(subreddit, page: ["before" : prevPage])
+            PostController.shared.postCount -= 25
+            scrollToTop()
         }
     }
 }
@@ -202,7 +257,7 @@ extension PostListViewController: UISearchBarDelegate{
         guard let searchText = searchBar.text?.lowercased() else { return }
         
         subreddit = searchText
-        displaySubreddit(subreddit)
+        displaySubreddit(subreddit, page: nil)
         searchBar.text = ""
         searchController.isActive = false
     }
@@ -239,3 +294,4 @@ extension PostListViewController {
         }
     }
 }
+

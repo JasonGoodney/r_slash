@@ -8,7 +8,7 @@
 
 import Foundation
 
-struct Post: Decodable {
+struct Post: Decodable, Equatable {
     let title: String
     let thumbnailEndpoint: String
     let numberOfUpvotes: Int
@@ -29,6 +29,14 @@ struct JSONDictionary: Decodable {
     
     struct DataDictionary: Decodable {
         let children: [PostDictionary]
+        let nextPage: String?
+        let prevPage: String?
+        
+        private enum CodingKeys: String, CodingKey {
+            case children
+            case nextPage = "after"
+            case prevPage = "before"
+        }
         
         struct PostDictionary: Decodable {
             let post: Post
@@ -39,4 +47,3 @@ struct JSONDictionary: Decodable {
         }
     }
 }
-

@@ -15,6 +15,12 @@ class PostTableViewCell: UITableViewCell {
             updateView()
         }
     }
+    override func prepareForReuse() {
+        thumbnailImageView.image = nil
+        titleLabel.text = ""
+        upvotesLabel.text = ""
+        numberOfCommentsLabel.text = ""
+    }
     
     var thumbnail: UIImage? {
         didSet {

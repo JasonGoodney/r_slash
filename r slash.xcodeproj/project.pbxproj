@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		D748142A2140D0EB002B30AF /* PagingToolbar.swift in Sources */ = {isa = PBXBuildFile; fileRef = D74814292140D0EB002B30AF /* PagingToolbar.swift */; };
 		D7607080213F3CC6004340AE /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = D760707F213F3CC6004340AE /* AppDelegate.swift */; };
 		D7607087213F3CC7004340AE /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D7607086213F3CC7004340AE /* Assets.xcassets */; };
 		D760708A213F3CC7004340AE /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = D7607088213F3CC7004340AE /* LaunchScreen.storyboard */; };
@@ -18,6 +19,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		D74814292140D0EB002B30AF /* PagingToolbar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PagingToolbar.swift; sourceTree = "<group>"; };
 		D760707C213F3CC6004340AE /* r slash.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "r slash.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		D760707F213F3CC6004340AE /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		D7607086213F3CC7004340AE /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -101,6 +103,7 @@
 			isa = PBXGroup;
 			children = (
 				D760709E213F586D004340AE /* PostTableViewCell.swift */,
+				D74814292140D0EB002B30AF /* PagingToolbar.swift */,
 			);
 			path = View;
 			sourceTree = "<group>";
@@ -185,6 +188,7 @@
 			files = (
 				D760709D213F46C5004340AE /* Constants.swift in Sources */,
 				D7607099213F4553004340AE /* PostListViewController.swift in Sources */,
+				D748142A2140D0EB002B30AF /* PagingToolbar.swift in Sources */,
 				D7607080213F3CC6004340AE /* AppDelegate.swift in Sources */,
 				D7607093213F432C004340AE /* Post.swift in Sources */,
 				D7607096213F44AD004340AE /* PostController.swift in Sources */,
