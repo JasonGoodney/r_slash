@@ -16,7 +16,7 @@ class PostController {
     
     var posts: [Post]?
     var nextPage: String?
-    var currentPage: String?
+    var currentPage: [String : String]?
     var prevPage: String?
     var postCount = 0
     

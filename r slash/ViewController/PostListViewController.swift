@@ -53,7 +53,7 @@ class PostListViewController: UIViewController {
         label.numberOfLines = 0
         return label
     }()
-    
+        
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -109,6 +109,10 @@ private extension PostListViewController {
     func setupTableView() {
         tableView.contentOffset.y = -64
     }
+    
+    func previousButton(isHidden: Bool) {
+        
+    }
 }
 
 // MARK: - Fetching
@@ -141,7 +145,7 @@ private extension PostListViewController {
     @objc func refreshSubreddit() {
         refreshControl.beginRefreshing()
         
-        displaySubreddit(subreddit, page: nil)
+        displaySubreddit(subreddit, page: PostController.shared.currentPage)
     }
     
     func openInReddit(from post: Post) -> Bool {
@@ -177,6 +181,9 @@ private extension PostListViewController {
 
 // MARK: - UITableViewDataSource
 extension PostListViewController: UITableViewDataSource {
+    func numberOfSections(in tableView: UITableView) -> Int {
+        return 2
+    }
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return posts?.count ?? 0
     }
@@ -216,9 +223,9 @@ extension PostListViewController: UITableViewDelegate {
     }
     
     func tableView(_ tableView: UITableView, viewForFooterInSection section: Int) -> UIView? {
-        let footerView = PagingToolbar()
-        footerView.pagingDelegate = self
-        return footerView
+        let pagingToolbar = PagingToolbar()
+        pagingToolbar.pagingDelegate = self
+        return pagingToolbar
     }
 }
 
@@ -228,6 +235,7 @@ extension PostListViewController: PagingToolbarDelegate {
         if let nextPage = PostController.shared.nextPage {
             displaySubreddit(subreddit, page: ["after" : nextPage])
             PostController.shared.postCount += 25
+            PostController.shared.currentPage = ["after" : nextPage]
             scrollToTop()
         }
     }
@@ -236,6 +244,7 @@ extension PostListViewController: PagingToolbarDelegate {
         if let prevPage = PostController.shared.prevPage {
             displaySubreddit(subreddit, page: ["before" : prevPage])
             PostController.shared.postCount -= 25
+            PostController.shared.currentPage = ["before" : prevPage]
             scrollToTop()
         }
     }
@@ -243,11 +252,7 @@ extension PostListViewController: PagingToolbarDelegate {
 
 // MARK: - UISearchResultsUpdating
 extension PostListViewController: UISearchResultsUpdating {
-    func updateSearchResults(for searchController: UISearchController) {
-//        guard let searchText = searchController.searchBar.text?.lowercased() else { return }
-////        // When searchText == "", so does subreddit
-//        subreddit = searchText
-        
+    func updateSearchResults(for searchController: UISearchController) {   
     }
 }
 
