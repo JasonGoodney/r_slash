@@ -15,22 +15,22 @@ class PostController {
     static let shared = PostController() ; private init() {}
     
     var posts: [Post]?
-    var nextPage: String?
-    var currentPage: [String : String]?
-    var prevPage: String?
-    var postCount = 0
+    var nextPage: (name: String, value: String)?
+    var currentPage: (name: String, value: String)?
+    var prevPage: (name: String, value: String)?
+    var count = 0
     
-    func fetchPosts(by subreddit: String, page: [String : String]?, completion: @escaping ([Post]?, Error?) -> Void) {
+    func fetchPosts(by subreddit: String, page: (name: String, value: String)?, completion: @escaping ([Post]?, Error?) -> Void) {
 
         guard let baseURL = URL(string: RedditURL.baseString) else { return }
         let subredditURL: URL = baseURL.appendingPathComponent("r").appendingPathComponent(subreddit)
         var components: URLComponents?
+        let countQueryitem = URLQueryItem(name: "count", value: "\(count)")
         
         if let page = page {
-            let pageQueryItem = page.compactMap({ URLQueryItem(name: $0.key, value: $0.value) })
-            let countQueryitem = URLQueryItem(name: "count", value: "\(postCount)")
+            let pageQueryItem = URLQueryItem(name: page.name, value: page.value)
             components = URLComponents(url: subredditURL, resolvingAgainstBaseURL: true)
-            components?.queryItems = [countQueryitem] + pageQueryItem            
+            components?.queryItems = [countQueryitem, pageQueryItem]
         }
         
         var jsonURL: URL
@@ -43,7 +43,6 @@ class PostController {
             
         }
         
-        
         URLSession.shared.dataTask(with: jsonURL) { (data, _, error) in
 
             do {
@@ -53,11 +52,11 @@ class PostController {
                 let jsonDictionary = try JSONDecoder().decode(JSONDictionary.self, from: data)
                 
                 if let nextPage = jsonDictionary.data.nextPage {
-                    self.nextPage = nextPage
+                    self.nextPage = (name: "after", value: nextPage)
                 }
                 
                 if let prevPage = jsonDictionary.data.prevPage {
-                    self.prevPage = prevPage
+                    self.prevPage = (name: "before", value: prevPage)
                 }
                 
                 self.posts = jsonDictionary.data.children.compactMap({ $0.post })

@@ -53,6 +53,12 @@ class PostListViewController: UIViewController {
         label.numberOfLines = 0
         return label
     }()
+    
+    lazy var pagingToolbar: PagingToolbar = {
+        let toolbar = PagingToolbar()
+        toolbar.pagingDelegate = self
+        return toolbar
+    }()
         
     // MARK: - Lifecycle
     override func viewDidLoad() {
@@ -68,7 +74,7 @@ class PostListViewController: UIViewController {
 private extension PostListViewController {
     func updateView() {
         
-        [tableView].forEach({
+        [tableView, pagingToolbar].forEach({
             view.addSubview($0)
             $0.translatesAutoresizingMaskIntoConstraints = false
         })
@@ -76,14 +82,22 @@ private extension PostListViewController {
         setupConstraints()
         setupNavigationBar()
         setupTableView()
+        
+        view.backgroundColor = .white
+        
+        previousButton(isEnabled: false)
     }
     
     func setupConstraints() {
         NSLayoutConstraint.activate([
             tableView.topAnchor.constraint(equalTo: view.topAnchor),
             tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            tableView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            tableView.bottomAnchor.constraint(equalTo: pagingToolbar.topAnchor),
             tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            
+            pagingToolbar.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            pagingToolbar.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            pagingToolbar.trailingAnchor.constraint(equalTo: view.trailingAnchor),
         ])
     }
     
@@ -110,14 +124,14 @@ private extension PostListViewController {
         tableView.contentOffset.y = -64
     }
     
-    func previousButton(isHidden: Bool) {
-        
+    func previousButton(isEnabled: Bool) {
+        pagingToolbar.previousPageButton.isEnabled = isEnabled
     }
 }
 
 // MARK: - Fetching
 private extension PostListViewController {
-    func displaySubreddit(_ subreddit: String, page: [String : String]?) {
+    func displaySubreddit(_ subreddit: String, page: (name: String, value: String)?) {
         
         PostController.shared.fetchPosts(by: subreddit, page: page) { (posts, error) in
             if let _ = error {
@@ -181,9 +195,6 @@ private extension PostListViewController {
 
 // MARK: - UITableViewDataSource
 extension PostListViewController: UITableViewDataSource {
-    func numberOfSections(in tableView: UITableView) -> Int {
-        return 2
-    }
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return posts?.count ?? 0
     }
@@ -221,30 +232,32 @@ extension PostListViewController: UITableViewDelegate {
         
         deselectCell()
     }
-    
-    func tableView(_ tableView: UITableView, viewForFooterInSection section: Int) -> UIView? {
-        let pagingToolbar = PagingToolbar()
-        pagingToolbar.pagingDelegate = self
-        return pagingToolbar
-    }
 }
 
 // MARK: - PagingToolbarDelegate
 extension PostListViewController: PagingToolbarDelegate {
     func nextPage() {
         if let nextPage = PostController.shared.nextPage {
-            displaySubreddit(subreddit, page: ["after" : nextPage])
-            PostController.shared.postCount += 25
-            PostController.shared.currentPage = ["after" : nextPage]
+            PostController.shared.count += 25
+            displaySubreddit(subreddit, page: nextPage)
+            PostController.shared.currentPage = nextPage
             scrollToTop()
+            previousButton(isEnabled: true)
         }
     }
     
     func prevPage() {
         if let prevPage = PostController.shared.prevPage {
-            displaySubreddit(subreddit, page: ["before" : prevPage])
-            PostController.shared.postCount -= 25
-            PostController.shared.currentPage = ["before" : prevPage]
+            if PostController.shared.count == 26 {
+                previousButton(isEnabled: false)
+                PostController.shared.count = 0
+                displaySubreddit(subreddit, page: nil)
+            } else {
+                displaySubreddit(subreddit, page: prevPage)
+                PostController.shared.currentPage = prevPage
+                PostController.shared.count += 1
+            }
+            
             scrollToTop()
         }
     }
